@@ -1,7 +1,7 @@
 # check_synology_cpu.py
 this Icinga/Nagios plugin checks the CPU usage on a Synology NAS device.
 
-![Output of check_synology_ram.py](img/check_synology_ram-small.png?raw=true "Output of check_synology_ram.py")
+![Output of check_synology_cpu.py](img/check_synology_cpu-small.png?raw=true "Output of check_synology_cpu.py")
 
 ## Usage
 

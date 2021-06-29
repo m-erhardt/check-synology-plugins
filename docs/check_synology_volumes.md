@@ -1,5 +1,5 @@
 # check_synology_volumes.py
-this Icinga/Nagios plugin checks the CPU usage on a Synology NAS device.
+this Icinga/Nagios plugin checks the status / usage of volumes and storage pools on a Synology NAS device.
 
 ![Output of check_synology_volumes.py](img/check_synology_volumes-small.png?raw=true "Output of check_synology_volumes.py")
 

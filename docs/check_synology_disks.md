@@ -1,4 +1,4 @@
-# check_synology_ram.py
+# check_synology_disks.py
 this Icinga/Nagios plugin checks the status of all individual hard drives connected to a Synology NAS device.
 
 ![Output of check_synology_disks.py](img/check_synology_disks-small.png?raw=true "Output of check_synology_disks.py")
