@@ -16,7 +16,7 @@
 
 import sys
 from argparse import ArgumentParser
-from pysnmp.hlapi import nextCmd, SnmpEngine, UsmUserData, \
+from pysnmp.hlapi import bulkCmd, SnmpEngine, UsmUserData, \
                          UdpTransportTarget, \
                          ObjectType, ObjectIdentity, \
                          ContextData, usmHMACMD5AuthProtocol, \
@@ -94,24 +94,26 @@ def get_snmp_table(table_oid, args):
     table = []
 
     if args.v3mode == "authPriv":
-        iterator = nextCmd(
+        iterator = bulkCmd(
             SnmpEngine(),
             UsmUserData(args.user, args.authkey, args.privkey,
                         authProtocol=authprot[args.authmode],
                         privProtocol=privprot[args.privmode]),
             UdpTransportTarget((args.host, args.port), timeout=args.timeout),
             ContextData(),
+            0, 20,
             ObjectType(ObjectIdentity(table_oid)),
             lexicographicMode=False,
             lookupMib=False
         )
     elif args.v3mode == "authNoPriv":
-        iterator = nextCmd(
+        iterator = bulkCmd(
             SnmpEngine(),
             UsmUserData(args.user, args.authkey,
                         authProtocol=authprot[args.authmode]),
             UdpTransportTarget((args.host, args.port), timeout=args.timeout),
             ContextData(),
+            0, 20,
             ObjectType(ObjectIdentity(table_oid)),
             lexicographicMode=False,
             lookupMib=False
