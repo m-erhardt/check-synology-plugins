@@ -1,3 +1,4 @@
+[![Pylint](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pylint.yml/badge.svg)](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pylint.yml)
 # check-synology-plugins
 
 ## About
