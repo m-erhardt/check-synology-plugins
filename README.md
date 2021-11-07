@@ -23,7 +23,7 @@ these plugins should work with all Synology devices running Synology DSM (DiskSt
 * You're welcome to open pull requests
 * When contributing code please make sure if follows the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide
 * Test your code with pycodestyle and pylint to avoid obvious issues
-  * `pycodestyle ./*.py`
+  * `pycodestyle ./*.py --max-line-length=100`
   * 
     ```bash
     pylint ./*.py \
