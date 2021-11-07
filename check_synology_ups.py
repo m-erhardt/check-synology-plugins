@@ -167,5 +167,6 @@ def main():
                 ''.join(["UPS connected (", ups_model[0][1], ", Status: \"",
                          ups_status[0][1], "\")"]))
 
+
 if __name__ == "__main__":
     main()

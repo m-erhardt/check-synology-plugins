@@ -216,5 +216,6 @@ def main():
 
     exit_plugin(returncode, output)
 
+
 if __name__ == "__main__":
     main()
