@@ -22,8 +22,8 @@ these plugins should work with all Synology devices running Synology DSM (DiskSt
 ## Contributing
 * You're welcome to open pull requests
 * When contributing code please make sure if follows the [PEP 8](https://www.python.org/dev/peps/pep-0008/) style guide
-* Test your code with pep8 and pylint to avoid obvious issues
-  * `pep8 ./check_synology_*.py`
+* Test your code with pycodestyle and pylint to avoid obvious issues
+  * `pycodestyle ./*.py`
   * 
     ```bash
     pylint ./*.py \
