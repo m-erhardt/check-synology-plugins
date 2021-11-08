@@ -129,7 +129,7 @@ def get_snmp_table(table_oid, args):
 
     for error_indication, error_status, error_index, var_binds in iterator:
         if error_indication:
-            print(error_indication)
+            exit_plugin("3", ''.join(['SNMP error: ', str(error_indication)]))
         elif error_status:
             print('%s at %s' % (error_status.prettyPrint(),
                                 error_index and
