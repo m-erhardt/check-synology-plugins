@@ -29,6 +29,5 @@ these plugins should work with all Synology devices running Synology DSM (DiskSt
     pylint ./*.py \
       --disable=duplicate-code \
       --disable=too-many-branches \
-      --disable=too-many-locals \
-      --disable=consider-using-f-string
+      --disable=too-many-locals
     ```

@@ -29,4 +29,4 @@ jobs:
         pip install -r requirements.txt
     - name: Analysing the code with pylint
       run: |
-        pylint ./*.py --disable=duplicate-code --disable=too-many-branches --disable=too-many-locals --disable=consider-using-f-string
+        pylint ./*.py --disable=duplicate-code --disable=too-many-branches --disable=too-many-locals
