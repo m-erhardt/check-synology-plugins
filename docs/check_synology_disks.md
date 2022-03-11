@@ -18,10 +18,14 @@ Synology NAS
 
 optional arguments:
   -h, --help            show this help message and exit
+
+Connection parameters:
   -H HOST, --host HOST  hostname or IP address
   -p PORT, --port PORT  SNMP port
   -t TIMEOUT, --timeout TIMEOUT
                         SNMP timeout
+
+SNMPv3 parameters:
   -u USER, --user USER  SNMPv3 user name
   -l {authPriv,authNoPriv}, --seclevel {authPriv,authNoPriv}
                         SNMPv3 security level
