@@ -6,22 +6,28 @@ this Icinga/Nagios plugin checks the CPU usage on a Synology NAS device.
 ## Usage
 
 ```
-./check_synology_cpu.py --help
-usage: check_synology_cpu.py [-h] -H HOST [-p PORT] [-t TIMEOUT] -u USER
-                             [-l {authPriv,authNoPriv}] -A AUTHKEY
-                             [-X PRIVKEY]
+usage: check_synology_cpu.py [-h] -H HOST [-p PORT] [-t TIMEOUT] [-w WARN]
+                             [-c CRIT] -u USER [-l {authPriv,authNoPriv}] -A
+                             AUTHKEY [-X PRIVKEY]
                              [-a {MD5,SHA,SHA224,SHA256,SHA384,SHA512}]
-                             [-x {DES,3DES,AES,AES192,AES256}] [-w WARN]
-                             [-c CRIT]
+                             [-x {DES,3DES,AES,AES192,AES256}]
 
 Icinga/Nagios plugin which checks the CPU load on a Synology NAS
 
 optional arguments:
   -h, --help            show this help message and exit
+
+Connection parameters:
   -H HOST, --host HOST  hostname or IP address
   -p PORT, --port PORT  SNMP port
   -t TIMEOUT, --timeout TIMEOUT
                         SNMP timeout
+
+Thresholds:
+  -w WARN, --warn WARN  Memory warning threshold (in percent)
+  -c CRIT, --crit CRIT  Memory critical threshold (in percent)
+
+SNMPv3 parameters:
   -u USER, --user USER  SNMPv3 user name
   -l {authPriv,authNoPriv}, --seclevel {authPriv,authNoPriv}
                         SNMPv3 security level
@@ -33,8 +39,6 @@ optional arguments:
                         SNMPv3 auth mode
   -x {DES,3DES,AES,AES192,AES256}, --privmode {DES,3DES,AES,AES192,AES256}
                         SNMPv3 privacy mode
-  -w WARN, --warn WARN  Memory warning threshold (in percent)
-  -c CRIT, --crit CRIT  Memory critical threshold (in percent)
 ```
 
 ### Usage example
