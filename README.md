@@ -1,4 +1,4 @@
-[![Pylint](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pylint.yml/badge.svg)](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pylint.yml) [![pycodestyle](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pycodestyle.yml/badge.svg)](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pycodestyle.yml)
+[![Pylint](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pylint.yml/badge.svg)](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pylint.yml) [![pycodestyle](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pycodestyle.yml/badge.svg)](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pycodestyle.yml) [![Release](https://img.shields.io/github/release/m-erhardt/check-synology-plugins.svg)](https://github.com/m-erhardt/check-synology-plugins/releases)
 # check-synology-plugins
 
 ## About
@@ -29,6 +29,5 @@ these plugins should work with all Synology devices running Synology DSM (DiskSt
     pylint ./*.py \
       --disable=duplicate-code \
       --disable=too-many-branches \
-      --disable=too-many-locals \
-      --disable=consider-using-f-string
+      --disable=too-many-locals
     ```

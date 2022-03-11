@@ -123,9 +123,8 @@ def get_snmp_table(table_oid, args):
         if error_indication:
             exit_plugin("3", ''.join(['SNMP error: ', str(error_indication)]), "")
         elif error_status:
-            print('%s at %s' % (error_status.prettyPrint(),
-                                error_index and
-                                var_binds[int(error_index) - 1][0] or '?'))
+            print(f"{error_status.prettyPrint()} at "
+                  f"{error_index and var_binds[int(error_index) - 1][0] or '?'}")
         else:
             # split OID and value into two fields and append to return element
             table.append([str(var_binds[0][0]), str(var_binds[0][1])])
