@@ -246,7 +246,11 @@ def main():
         vol_crit = round(vol_size * (args.crit / 100))
 
         # Calculate used percentage
-        vol_used_pct = round((vol_used / vol_size) * 100, 2)
+        if vol_size == 0 and vol_used == 0:
+            # Prevent ZeroDivisionError when vol_size is 0
+            vol_used_pct = 0.0
+        else:
+            vol_used_pct = round((vol_used / vol_size) * 100, 2)
 
         # Remove whitespaces from volume name for perfdata label
         label = str(vol_name.replace(" ", ""))
@@ -255,9 +259,9 @@ def main():
             # Volume, apply disk thresholds
 
             # Evaluate against disk thresholds
-            if vol_used >= vol_crit:
+            if vol_used >= vol_crit and vol_size != 0:
                 returncode = "2"
-            if returncode != "2" and vol_used >= vol_warn:
+            if returncode != "2" and vol_used >= vol_warn and vol_size != 0:
                 returncode = "1"
 
             # Append to outpur and perfdata string
