@@ -52,3 +52,4 @@ SNMPv3 parameters:
 OK - UPS connected (Smart-UPS X 2200, Status: "OL")
 ```
 ### Parameters
+
