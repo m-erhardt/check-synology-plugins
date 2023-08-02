@@ -1,4 +1,4 @@
-[![Pylint](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pylint.yml/badge.svg)](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pylint.yml) [![pycodestyle](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pycodestyle.yml/badge.svg)](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/pycodestyle.yml) [![Release](https://img.shields.io/github/release/m-erhardt/check-synology-plugins.svg)](https://github.com/m-erhardt/check-synology-plugins/releases)
+[![Tests](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/tests.yml/badge.svg)](https://github.com/m-erhardt/check-synology-plugins/actions/workflows/tests.yml) [![Release](https://img.shields.io/github/release/m-erhardt/check-synology-plugins.svg)](https://github.com/m-erhardt/check-synology-plugins/releases)
 # check-synology-plugins
 
 ## About
