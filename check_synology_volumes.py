@@ -16,7 +16,7 @@
 
 import sys
 from re import match
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace as Arguments
 from itertools import chain
 from pysnmp.hlapi import bulkCmd, SnmpEngine, UsmUserData, \
                          UdpTransportTarget, Udp6TransportTarget, \
@@ -30,7 +30,7 @@ from pysnmp.hlapi import bulkCmd, SnmpEngine, UsmUserData, \
                          usm3DESEDEPrivProtocol, usmAesCfb128Protocol, \
                          usmAesCfb192Protocol, usmAesCfb256Protocol
 
-authprot = {
+authprot: dict = {
     "MD5": usmHMACMD5AuthProtocol,
     "SHA": usmHMACSHAAuthProtocol,
     "SHA224": usmHMAC128SHA224AuthProtocol,
@@ -38,14 +38,14 @@ authprot = {
     "SHA384": usmHMAC256SHA384AuthProtocol,
     "SHA512": usmHMAC384SHA512AuthProtocol,
     }
-privprot = {
+privprot: dict = {
     "DES": usmDESPrivProtocol,
     "3DES": usm3DESEDEPrivProtocol,
     "AES": usmAesCfb128Protocol,
     "AES192": usmAesCfb192Protocol,
     "AES256": usmAesCfb256Protocol,
 }
-raid_state_dict = {
+raid_state_dict: dict = {
     # SYNOLOGY-RAID-MIB::raidStatus
     '1': "Normal",
     '2': "Repairing",
@@ -71,11 +71,13 @@ raid_state_dict = {
 }
 
 # Return CRIT / WARN if volume state is one of these
-states_crit = [12, 14, 15, 16, 17, 18, 19, 21]
-states_warn = [2, 3, 5, 10, 11, 20]
+volumestates: dict = {
+    'crit': [12, 14, 15, 16, 17, 18, 19, 21],
+    'warn': [2, 3, 5, 10, 11, 20]
+}
 
 
-def get_args():
+def get_args() -> Arguments:
     """ Parse Arguments """
     parser = ArgumentParser(
                  description="Icinga/Nagios plugin which checks the RAID \
@@ -119,15 +121,15 @@ def get_args():
                           help="SNMPv3 privacy mode", type=str, dest='privmode',
                           default='AES',
                           choices=['DES', '3DES', 'AES', 'AES192', 'AES256'])
-    args = parser.parse_args()
+    args: Arguments = parser.parse_args()
     return args
 
 
-def get_snmp_table(table_oid, args):
+def get_snmp_table(table_oid, args) -> list:
     """ get SNMP table """
 
     # initialize empty list for return object
-    table = []
+    table: list = []
 
     if args.ipv6:
         transport_target = Udp6TransportTarget((args.host, args.port), timeout=args.timeout)
@@ -174,20 +176,35 @@ def get_snmp_table(table_oid, args):
     return table
 
 
-def exit_plugin(returncode, output, perfdata):
+def exit_plugin(returncode: int, output: str, perfdata: str):
     """ Check status and exit accordingly """
-    if returncode == "3":
+    if returncode == 3:
         print("UNKNOWN - " + str(output))
         sys.exit(3)
-    if returncode == "2":
+    if returncode == 2:
         print("CRITICAL - " + str(output) + " | " + str(perfdata))
         sys.exit(2)
-    if returncode == "1":
+    if returncode == 1:
         print("WARNING - " + str(output) + " | " + str(perfdata))
         sys.exit(1)
-    elif returncode == "0":
+    elif returncode == 0:
         print("OK - " + str(output) + " | " + str(perfdata))
         sys.exit(0)
+
+
+def set_state(newstate: int, state: int) -> int:
+    """ Set return state of plugin """
+
+    if (newstate == 2) or (state == 2):
+        returnstate = 2
+    elif (newstate == 1) and (state not in [2]):
+        returnstate = 1
+    elif (newstate == 3) and (state not in [1, 2]):
+        returnstate = 3
+    else:
+        returnstate = 0
+
+    return returnstate
 
 
 def main():
@@ -223,9 +240,9 @@ def main():
         volumeids.append(i[0])
 
     # Set return code and generate output and perfdata strings
-    returncode = "0"
-    perfdata = ""
-    output = ""
+    returncode: int = 0
+    perfdata: str = ""
+    output: str = ""
 
     for vol_id in volumeids:
         # loop through volume ids
@@ -271,31 +288,26 @@ def main():
             if vol_name not in args.ignore_utilization:
                 # Evaluate against disk thresholds
                 if vol_used >= vol_crit and vol_size != 0:
-                    returncode = "2"
-                if returncode != "2" and vol_used >= vol_warn and vol_size != 0:
-                    returncode = "1"
+                    returncode = set_state(2, returncode)
+                if vol_used >= vol_warn and vol_size != 0:
+                    returncode = set_state(1, returncode)
             else:
                 vol_warn = ''
                 vol_crit = ''
 
-            # Append to outpur and perfdata string
-            perfdata += ''.join(["\'", label, "\'=", str(vol_used), "B;",
-                                 str(vol_warn), ";", str(vol_crit), ";0;",
-                                 str(vol_size), " "])
-            output += ''.join([vol_name, ": ",
-                               str(raid_state_dict[str(vol_state)]),
-                               " (", str(vol_used_pct), "%) "])
+            # Append to output and perfdata string
+            perfdata += f'\'{ label }\'={ str(vol_used) }B;{ str(vol_warn) };{ str(vol_crit) };0;{ str(vol_size) } '
+            output += f'{ vol_name }: { raid_state_dict[str(vol_state)] } ({ vol_used_pct }%) '
 
         if match("^Storage Pool *", vol_name):
             # Storage Pool, do not apply disk thresholds and do not append
             # perfdata with "used"-metric
-            output += ''.join([vol_name, ": ",
-                               str(raid_state_dict[str(vol_state)]), " "])
+            output += f'{ vol_name }: { raid_state_dict[str(vol_state)] } '
         # Evaluate against volume state
-        if int(vol_state) in states_crit:
-            returncode = "2"
-        if returncode != "2" and int(vol_state) in states_warn:
-            returncode = "1"
+        if int(vol_state) in volumestates['crit']:
+            returncode = set_state(2, returncode)
+        elif int(vol_state) in volumestates['warn']:
+            returncode = set_state(1, returncode)
 
     # Remove last comma from output string
     output = output.rstrip(', ')
