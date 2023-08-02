@@ -179,7 +179,7 @@ def main():
             cache_ram = int(i[1])
 
     # Calculate used memory
-    used_ram = int(total_ram - free_ram - buffer_ram - cache_ram) # pylint: disable=used-before-assignment
+    used_ram = int(total_ram - free_ram - buffer_ram - cache_ram)  # pylint: disable=used-before-assignment
 
     # Calculate used percentage
     used_ram_pct = round((used_ram / total_ram) * 100, 2)
