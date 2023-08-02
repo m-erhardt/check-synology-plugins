@@ -6,15 +6,10 @@ this Icinga/Nagios plugin checks if a uninterruptible power supply is connected 
 ## Usage
 
 ```
-./check_synology_ups.py --help
-usage: check_synology_ups.py [-h] -H HOST [-p PORT] [-t TIMEOUT] -u USER
-                             [-l {authPriv,authNoPriv}] -A AUTHKEY
-                             [-X PRIVKEY]
-                             [-a {MD5,SHA,SHA224,SHA256,SHA384,SHA512}]
-                             [-x {DES,3DES,AES,AES192,AES256}]
+usage: check_synology_ups.py [-h] -H HOST [-p PORT] [-t TIMEOUT] [-6] -u USER [-l {authPriv,authNoPriv}] -A AUTHKEY [-X PRIVKEY]
+                             [-a {MD5,SHA,SHA224,SHA256,SHA384,SHA512}] [-x {DES,3DES,AES,AES192,AES256}]
 
-Icinga/Nagios plugin which checks if a UPS device is connected to the NAS via
-USB
+Icinga/Nagios plugin which checks if a UPS device is connected to the NAS via USB
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -24,6 +19,7 @@ Connection parameters:
   -p PORT, --port PORT  SNMP port
   -t TIMEOUT, --timeout TIMEOUT
                         SNMP timeout
+  -6, --ipv6            Use IPv6
 
 SNMPv3 parameters:
   -u USER, --user USER  SNMPv3 user name

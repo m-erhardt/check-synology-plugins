@@ -1,0 +1,48 @@
+---
+name: Linter
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
+      - '.editorconfig'
+      - '.gitattributes'
+      - 'README.md'
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
+      - '.editorconfig'
+      - '.gitattributes'
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint pycodestyle
+          pip install -r requirements.txt
+
+      - name: Run pycodestyle tests
+        run: |
+          pycodestyle ./*.py
+
+      - name: Run pylint tests
+        run: |
+          pylint ./*.py

@@ -6,12 +6,8 @@ this Icinga/Nagios plugin checks the status / usage of volumes and storage pools
 ## Usage
 
 ```
-./check_synology_volumes.py --help
-usage: check_synology_volumes.py [-h] -H HOST [-p PORT] [-t TIMEOUT] [-w WARN]
-                                 [-c CRIT] -u USER [-l {authPriv,authNoPriv}]
-                                 -A AUTHKEY [-X PRIVKEY]
-                                 [-a {MD5,SHA,SHA224,SHA256,SHA384,SHA512}]
-                                 [-x {DES,3DES,AES,AES192,AES256}]
+usage: check_synology_volumes.py [-h] -H HOST [-p PORT] [-t TIMEOUT] [-6] [-w WARN] [-c CRIT] [-i IGNORE_UTILIZATION] -u USER [-l {authPriv,authNoPriv}]
+                                 -A AUTHKEY [-X PRIVKEY] [-a {MD5,SHA,SHA224,SHA256,SHA384,SHA512}] [-x {DES,3DES,AES,AES192,AES256}]
 
 Icinga/Nagios plugin which checks the RAID volume state on a Synology NAS
 
@@ -23,10 +19,13 @@ Connection parameters:
   -p PORT, --port PORT  SNMP port
   -t TIMEOUT, --timeout TIMEOUT
                         SNMP timeout
+  -6, --ipv6            Use IPv6
 
 Thresholds:
   -w WARN, --warn WARN  Volume warning threshold (in percent)
   -c CRIT, --crit CRIT  Volume critical threshold (in percent)
+  -i IGNORE_UTILIZATION, --ignore-utilization IGNORE_UTILIZATION
+                        Ignore utilization thresholds for volume (may be repeated)
 
 SNMPv3 parameters:
   -u USER, --user USER  SNMPv3 user name

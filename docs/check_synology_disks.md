@@ -6,15 +6,10 @@ this Icinga/Nagios plugin checks the status of all individual hard drives connec
 ## Usage
 
 ```
-./check_synology_disks.py --help
-usage: check_synology_disks.py [-h] -H HOST [-p PORT] [-t TIMEOUT] -u USER
-                               [-l {authPriv,authNoPriv}] -A AUTHKEY
-                               [-X PRIVKEY]
-                               [-a {MD5,SHA,SHA224,SHA256,SHA384,SHA512}]
-                               [-x {DES,3DES,AES,AES192,AES256}]
+usage: check_synology_disks.py [-h] -H HOST [-p PORT] [-t TIMEOUT] [-6] -u USER [-l {authPriv,authNoPriv}] -A AUTHKEY [-X PRIVKEY]
+                               [-a {MD5,SHA,SHA224,SHA256,SHA384,SHA512}] [-x {DES,3DES,AES,AES192,AES256}]
 
-Icinga/Nagios plugin which checks the state of all individual disks on a
-Synology NAS
+Icinga/Nagios plugin which checks the state of all individual disks on a Synology NAS
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -24,6 +19,7 @@ Connection parameters:
   -p PORT, --port PORT  SNMP port
   -t TIMEOUT, --timeout TIMEOUT
                         SNMP timeout
+  -6, --ipv6            Use IPv6
 
 SNMPv3 parameters:
   -u USER, --user USER  SNMPv3 user name

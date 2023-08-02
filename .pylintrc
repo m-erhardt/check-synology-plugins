@@ -3,3 +3,6 @@ disable=
     duplicate-code,
     too-many-branches,
     too-many-locals
+
+[DESIGN]
+max-statements=60
