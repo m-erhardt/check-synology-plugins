@@ -94,6 +94,9 @@ def get_args():
     thresholds.add_argument("-c", "--crit", required=False,
                             help="Volume critical threshold (in percent)",
                             type=float, dest='crit', default="90")
+    thresholds.add_argument("-i", "--ignore-utilization", action='append',
+                            help="Ignore utilization thresholds for volume (may be repeated)",
+                            type=str, dest='ignore_utilization', default=[])
     snmpopts = parser.add_argument_group('SNMPv3 parameters')
     snmpopts.add_argument("-u", "--user", required=True, help="SNMPv3 user name",
                           type=str, dest='user')
@@ -258,11 +261,15 @@ def main():
         if match("^Volume *", vol_name):
             # Volume, apply disk thresholds
 
-            # Evaluate against disk thresholds
-            if vol_used >= vol_crit and vol_size != 0:
-                returncode = "2"
-            if returncode != "2" and vol_used >= vol_warn and vol_size != 0:
-                returncode = "1"
+            if vol_name not in args.ignore_utilization:
+                # Evaluate against disk thresholds
+                if vol_used >= vol_crit and vol_size != 0:
+                    returncode = "2"
+                if returncode != "2" and vol_used >= vol_warn and vol_size != 0:
+                    returncode = "1"
+            else:
+                vol_warn = ''
+                vol_crit = ''
 
             # Append to outpur and perfdata string
             perfdata += ''.join(["\'", label, "\'=", str(vol_used), "B;",
