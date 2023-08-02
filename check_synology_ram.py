@@ -17,7 +17,7 @@
 import sys
 from argparse import ArgumentParser
 from pysnmp.hlapi import bulkCmd, SnmpEngine, UsmUserData, \
-                         UdpTransportTarget, \
+                         UdpTransportTarget, Udp6TransportTarget, \
                          ObjectType, ObjectIdentity, \
                          ContextData, usmHMACMD5AuthProtocol, \
                          usmHMACSHAAuthProtocol, \
@@ -57,6 +57,8 @@ def get_args():
                           type=int, dest='port', default=161)
     connopts.add_argument("-t", "--timeout", required=False, help="SNMP timeout",
                           type=int, dest='timeout', default=10)
+    connopts.add_argument("-6", "--ipv6", required=False, help='Use IPv6',
+                          dest='ipv6', action='store_true', default=False)
     thresholds = parser.add_argument_group('Thresholds')
     thresholds.add_argument("-w", "--warn", required=False,
                             help="Memory warning threshold (in percent)",
@@ -94,13 +96,18 @@ def get_snmp_table(table_oid, args):
     # initialize empty list for return object
     table = []
 
+    if args.ipv6:
+        transport_target = Udp6TransportTarget((args.host, args.port), timeout=args.timeout)
+    else:
+        transport_target = UdpTransportTarget((args.host, args.port), timeout=args.timeout)
+
     if args.v3mode == "authPriv":
         iterator = bulkCmd(
             SnmpEngine(),
             UsmUserData(args.user, args.authkey, args.privkey,
                         authProtocol=authprot[args.authmode],
                         privProtocol=privprot[args.privmode]),
-            UdpTransportTarget((args.host, args.port), timeout=args.timeout),
+            transport_target,
             ContextData(),
             0, 20,
             ObjectType(ObjectIdentity(table_oid)),
@@ -112,7 +119,7 @@ def get_snmp_table(table_oid, args):
             SnmpEngine(),
             UsmUserData(args.user, args.authkey,
                         authProtocol=authprot[args.authmode]),
-            UdpTransportTarget((args.host, args.port), timeout=args.timeout),
+            transport_target,
             ContextData(),
             0, 20,
             ObjectType(ObjectIdentity(table_oid)),
