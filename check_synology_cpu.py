@@ -175,11 +175,11 @@ def main():
             cpuload_idle = int(i[1])
 
     # Calculate combinded CPU usage (System + User)
-    cpuload_combined = int(cpuload_user + cpuload_system)
+    cpuload_combined = int(cpuload_user + cpuload_system) # pylint: disable=used-before-assignment
 
     # Construct output string
     output = ''.join(["System: ", str(cpuload_system), "%, User: ",
-                      str(cpuload_user), "%, Idle: ", str(cpuload_idle), "% "])
+                      str(cpuload_user), "%, Idle: ", str(cpuload_idle), "% "]) # pylint: disable=used-before-assignment
 
     # Construct perfdata string
     perfdata = ''.join(["\'system\'=", str(cpuload_system), "%;",
