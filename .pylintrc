@@ -2,7 +2,8 @@
 disable = duplicate-code, too-many-branches, too-many-locals
 
 [tool.pylint.design]
-max-statements = 60
+max-statements = 50
+max-attributes = 10
 
 [tool.pylint.format]
 max-line-length = 120
