@@ -1,5 +1,5 @@
 [tool.pylint."messages control"]
-disable = duplicate-code, too-many-branches, too-many-locals
+disable = duplicate-code
 
 [tool.pylint.design]
 max-statements = 50
