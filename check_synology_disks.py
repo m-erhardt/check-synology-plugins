@@ -210,7 +210,7 @@ def main():
                 disk_state = str(entry[1])
 
         # Append to output and perfdata string
-        output += f'{ disk_name }: { disk_state_dict[str(disk_state)] }, '  # pylint: disable=E0606
+        output += f'{disk_name}: {disk_state_dict[str(disk_state)]}, '  # pylint: disable=E0606
 
         # Evaluate against disk state
         if int(disk_state) in states_crit:

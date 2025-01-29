@@ -330,14 +330,14 @@ def main():
                     returncode = set_state(1, returncode)
 
             # Append to output and perfdata string
-            perfdata += (f'\'{ volume.label }\'={ volume.used_bytes }B;'
-                         f'{ volume.wthres_bytes };{ volume.cthres_bytes };0;{ volume.size } ')
-            output += f'{ volume.name }: { raid_state_dict[str(volume.state)] } ({ volume.used_pct }%) '
+            perfdata += (f'\'{volume.label}\'={volume.used_bytes}B;'
+                         f'{volume.wthres_bytes};{volume.cthres_bytes};0;{volume.size} ')
+            output += f'{volume.name}: {raid_state_dict[str(volume.state)]} ({volume.used_pct}%) '
 
         if match("^Storage Pool *", volume.name):
             # Storage Pool, do not apply disk thresholds and do not append
             # perfdata with "used"-metric
-            output += f'{ volume.name }: { raid_state_dict[str(volume.state)] } '
+            output += f'{volume.name}: {raid_state_dict[str(volume.state)]} '
 
         # Evaluate against volume state
         if volume.state in volumestates['crit']:
