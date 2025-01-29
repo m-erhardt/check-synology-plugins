@@ -3,7 +3,7 @@
 
 ## About
 * this repository contains a collection of Icinga / Nagios plugins to monitor Synology NAS devices via SNMPv3
-* Written for python3 (CI tests are run with python 3.6, 3.8, 3.9 and 3.10)
+* Written for python3 (CI tests are run with python 3.9, 3.10, 3.11 and 3.12)
 * Uses SNMPv3 in AuthPriv or authNoPriv mode
 
 ### Compatibility
