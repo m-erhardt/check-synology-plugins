@@ -134,7 +134,7 @@ def get_snmp_table(table_oid, args):
             lookupMib=False
         )
 
-    for error_indication, error_status, error_index, var_binds in iterator:
+    for error_indication, error_status, error_index, var_binds in iterator:  # pylint: disable=E0606
         if error_indication:
             exit_plugin("3", ''.join(['SNMP error: ', str(error_indication)]))
         elif error_status:
@@ -196,7 +196,7 @@ def main():
     output = ""
 
     for i in diskids:
-        # loop through disl ids
+        # loop through disk ids
         disk = i
 
         for entry in disk_ids:
@@ -210,8 +210,7 @@ def main():
                 disk_state = str(entry[1])
 
         # Append to output and perfdata string
-        output += ''.join([disk_name, ": ", disk_state_dict[str(disk_state)],
-                           ", "])
+        output += f'{ disk_name }: { disk_state_dict[str(disk_state)] }, '  # pylint: disable=E0606
 
         # Evaluate against disk state
         if int(disk_state) in states_crit:

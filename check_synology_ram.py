@@ -127,7 +127,7 @@ def get_snmp_table(table_oid, args):
             lookupMib=False
         )
 
-    for error_indication, error_status, error_index, var_binds in iterator:
+    for error_indication, error_status, error_index, var_binds in iterator:  # pylint: disable=E0606
         if error_indication:
             exit_plugin("3", ''.join(['SNMP error: ', str(error_indication)]), "")
         elif error_status:
