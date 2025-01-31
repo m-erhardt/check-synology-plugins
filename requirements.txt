@@ -1,4 +1,3 @@
 # Required python modules
-argparse
-pysnmp
+pysnmp>=7.0.0
 

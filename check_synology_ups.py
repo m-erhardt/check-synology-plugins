@@ -15,8 +15,9 @@
 """
 
 import sys
+import asyncio
 from argparse import ArgumentParser
-from pysnmp.hlapi import bulkCmd, SnmpEngine, UsmUserData, \
+from pysnmp.hlapi.v3arch.asyncio import bulk_walk_cmd, SnmpEngine, UsmUserData, \
                          UdpTransportTarget, Udp6TransportTarget, \
                          ObjectType, ObjectIdentity, \
                          ContextData, usmHMACMD5AuthProtocol, \
@@ -83,74 +84,91 @@ def get_args():
     return args
 
 
-def get_snmp_table(table_oid, args):
+async def get_snmp_table(table_oid, args):
     """ get SNMP table """
 
     # initialize empty list for return object
     table = []
 
+    # Set up TransportTarget object
     if args.ipv6:
-        transport_target = Udp6TransportTarget((args.host, args.port), timeout=args.timeout)
+        transport_target = await Udp6TransportTarget.create((args.host, args.port), args.timeout)
     else:
-        transport_target = UdpTransportTarget((args.host, args.port), timeout=args.timeout)
+        transport_target = await UdpTransportTarget.create((args.host, args.port), args.timeout)
 
+    # Set up UsmUserData object
     if args.v3mode == "authPriv":
-        iterator = bulkCmd(
-            SnmpEngine(),
-            UsmUserData(args.user, args.authkey, args.privkey,
-                        authProtocol=authprot[args.authmode],
-                        privProtocol=privprot[args.privmode]),
-            transport_target,
-            ContextData(),
-            0, 20,
-            ObjectType(ObjectIdentity(table_oid)),
-            lexicographicMode=False,
-            lookupMib=False
+        usm_user_data = UsmUserData(
+            args.user, args.authkey, args.privkey,
+            authProtocol=authprot[args.authmode],
+            privProtocol=privprot[args.privmode]
         )
     elif args.v3mode == "authNoPriv":
-        iterator = bulkCmd(
-            SnmpEngine(),
-            UsmUserData(args.user, args.authkey,
-                        authProtocol=authprot[args.authmode]),
-            transport_target,
-            ContextData(),
-            0, 20,
-            ObjectType(ObjectIdentity(table_oid)),
-            lexicographicMode=False,
-            lookupMib=False
+        usm_user_data = UsmUserData(
+            args.user, args.authkey,
+            authProtocol=authprot[args.authmode]
         )
+    else:
+        # Should never occur - prevent pylint "possibly-used-before-assignment"
+        usm_user_data = None
 
+    snmp_engine = SnmpEngine()
+
+    objects = bulk_walk_cmd(
+        snmp_engine,
+        usm_user_data,
+        transport_target,
+        ContextData(),
+        0, 50,
+        ObjectType(ObjectIdentity(table_oid)),
+        lexicographicMode=False,
+        lookupMib=False
+    )
+
+    iterator = [item async for item in objects]
     for error_indication, error_status, error_index, var_binds in iterator:
+
         if error_indication:
-            exit_plugin("3", ''.join(['SNMP error: ', str(error_indication)]))
+            # Exit if error occured during SNMP query
+            exit_plugin(3, ''.join(['SNMP error: ', str(error_indication)]), "")
         elif error_status:
             print(f"{error_status.prettyPrint()} at "
                   f"{error_index and var_binds[int(error_index) - 1][0] or '?'}")
         else:
-            # split OID and value into two fields and append to return element
-            table.append([str(var_binds[0][0]), str(var_binds[0][1])])
+            # loop over returned OIDs and append to table
+            for oid_element in var_binds:
+                table.append([str(oid_element[0]), str(oid_element[1])])
+
+    snmp_engine.close_dispatcher()
 
     # return list with all OIDs/values from snmp table
     return table
 
 
-def exit_plugin(returncode, output):
+def exit_plugin(returncode: int, output: str, perfdata: str = ""):
     """ Check status and exit accordingly """
-    if returncode == "3":
-        print("UNKNOWN - " + str(output))
+
+    # Only append perfdata if it is set - otherwise the pipe character ends up in the output
+    if perfdata == "":
+        returnstring: str = f'{output}'
+    else:
+        returnstring: str = f'{output} | {perfdata}'
+
+    if returncode == 3:
+        print(f"UNKNOWN - {returnstring}")
         sys.exit(3)
-    if returncode == "2":
-        print("CRITICAL - " + str(output))
+    elif returncode == 2:
+        print(f"CRITICAL - {returnstring}")
         sys.exit(2)
-    if returncode == "1":
-        print("WARNING - " + str(output))
+    elif returncode == 1:
+        print(f"WARNING - {returnstring}")
         sys.exit(1)
-    elif returncode == "0":
-        print("OK - " + str(output))
+    elif returncode == 0:
+        print(f"OK - {returnstring}")
         sys.exit(0)
 
 
-def main():
+async def main():
     """ Main program code """
 
     # Get Arguments
@@ -161,18 +179,18 @@ def main():
     #    SYNOLOGY-UPS-MIB::upsInfoStatus
     #    SYNOLOGY-UPS-MIB::upsBatteryChargeValue
     #    SYNOLOGY-UPS-MIB::upsBatteryRuntimeValue
-    ups_model = get_snmp_table('1.3.6.1.4.1.6574.4.1.1', args)
-    ups_status = get_snmp_table('1.3.6.1.4.1.6574.4.2.1', args)
+    ups_model = await get_snmp_table('1.3.6.1.4.1.6574.4.1.1', args)
+    ups_status = await get_snmp_table('1.3.6.1.4.1.6574.4.2.1', args)
 
     if len(ups_model) == 0 or len(ups_status) == 0:
         # Check if we received data via SNMP, if these OIDs are empty no UPS
         # is connected
-        exit_plugin("2", "No UPS is connected to the NAS")
+        exit_plugin(2, "No UPS is connected to the NAS")
 
-    exit_plugin("0",
+    exit_plugin(0,
                 ''.join(["UPS connected (", ups_model[0][1], ", Status: \"",
                          ups_status[0][1], "\")"]))
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

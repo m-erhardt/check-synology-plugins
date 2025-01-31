@@ -15,10 +15,11 @@
 """
 
 import sys
+import asyncio
 from re import match
 from argparse import ArgumentParser, Namespace as Arguments
 from itertools import chain
-from pysnmp.hlapi import bulkCmd, SnmpEngine, UsmUserData, \
+from pysnmp.hlapi.v3arch.asyncio import bulk_walk_cmd, SnmpEngine, UsmUserData, \
                          UdpTransportTarget, Udp6TransportTarget, \
                          ObjectType, ObjectIdentity, \
                          ContextData, usmHMACMD5AuthProtocol, \
@@ -160,52 +161,62 @@ def get_args() -> Arguments:
     return args
 
 
-def get_snmp_table(table_oid, args) -> list:
+async def get_snmp_table(table_oid, args):
     """ get SNMP table """
 
     # initialize empty list for return object
-    table: list = []
+    table = []
 
+    # Set up TransportTarget object
     if args.ipv6:
-        transport_target = Udp6TransportTarget((args.host, args.port), timeout=args.timeout)
+        transport_target = await Udp6TransportTarget.create((args.host, args.port), args.timeout)
     else:
-        transport_target = UdpTransportTarget((args.host, args.port), timeout=args.timeout)
+        transport_target = await UdpTransportTarget.create((args.host, args.port), args.timeout)
 
+    # Set up UsmUserData object
     if args.v3mode == "authPriv":
-        iterator = bulkCmd(
-            SnmpEngine(),
-            UsmUserData(args.user, args.authkey, args.privkey,
-                        authProtocol=authprot[args.authmode],
-                        privProtocol=privprot[args.privmode]),
-            transport_target,
-            ContextData(),
-            0, 50,
-            ObjectType(ObjectIdentity(table_oid)),
-            lexicographicMode=False,
-            lookupMib=False
+        usm_user_data = UsmUserData(
+            args.user, args.authkey, args.privkey,
+            authProtocol=authprot[args.authmode],
+            privProtocol=privprot[args.privmode]
         )
     elif args.v3mode == "authNoPriv":
-        iterator = bulkCmd(
-            SnmpEngine(),
-            UsmUserData(args.user, args.authkey,
-                        authProtocol=authprot[args.authmode]),
-            transport_target,
-            ContextData(),
-            0, 50,
-            ObjectType(ObjectIdentity(table_oid)),
-            lexicographicMode=False,
-            lookupMib=False
+        usm_user_data = UsmUserData(
+            args.user, args.authkey,
+            authProtocol=authprot[args.authmode]
         )
+    else:
+        # Should never occur - prevent pylint "possibly-used-before-assignment"
+        usm_user_data = None
 
+    snmp_engine = SnmpEngine()
+
+    objects = bulk_walk_cmd(
+        snmp_engine,
+        usm_user_data,
+        transport_target,
+        ContextData(),
+        0, 50,
+        ObjectType(ObjectIdentity(table_oid)),
+        lexicographicMode=False,
+        lookupMib=False
+    )
+
+    iterator = [item async for item in objects]
     for error_indication, error_status, error_index, var_binds in iterator:
+
         if error_indication:
-            exit_plugin("3", ''.join(['SNMP error: ', str(error_indication)]), "")
+            # Exit if error occured during SNMP query
+            exit_plugin(3, ''.join(['SNMP error: ', str(error_indication)]), "")
         elif error_status:
             print(f"{error_status.prettyPrint()} at "
                   f"{error_index and var_binds[int(error_index) - 1][0] or '?'}")
         else:
-            # split OID and value into two fields and append to return element
-            table.append([str(var_binds[0][0]), str(var_binds[0][1])])
+            # loop over returned OIDs and append to table
+            for oid_element in var_binds:
+                table.append([str(oid_element[0]), str(oid_element[1])])
+
+    snmp_engine.close_dispatcher()
 
     # return list with all OIDs/values from snmp table
     return table
@@ -249,19 +260,26 @@ def parse_synology_raidmib(snmpqueries: dict) -> list:
     return volumes
 
 
-def exit_plugin(returncode: int, output: str, perfdata: str):
+def exit_plugin(returncode: int, output: str, perfdata: str = ""):
     """ Check status and exit accordingly """
+
+    # Only append perfdata if it is set - otherwise the pipe character ends up in the output
+    if perfdata == "":
+        returnstring: str = f'{output}'
+    else:
+        returnstring: str = f'{output} | {perfdata}'
+
     if returncode == 3:
-        print("UNKNOWN - " + str(output))
+        print(f"UNKNOWN - {returnstring}")
         sys.exit(3)
-    if returncode == 2:
-        print("CRITICAL - " + str(output) + " | " + str(perfdata))
+    elif returncode == 2:
+        print(f"CRITICAL - {returnstring}")
         sys.exit(2)
-    if returncode == 1:
-        print("WARNING - " + str(output) + " | " + str(perfdata))
+    elif returncode == 1:
+        print(f"WARNING - {returnstring}")
         sys.exit(1)
     elif returncode == 0:
-        print("OK - " + str(output) + " | " + str(perfdata))
+        print(f"OK - {returnstring}")
         sys.exit(0)
 
 
@@ -280,7 +298,7 @@ def set_state(newstate: int, state: int) -> int:
     return returnstate
 
 
-def main():
+async def main():
     """ Main program code """
 
     # Get Arguments
@@ -292,10 +310,10 @@ def main():
     #    SYNOLOGY-RAID-MIB::raidFreeSize
     #    SYNOLOGY-RAID-MIB::raidTotalSize
     snmp_replies: dict = {
-        'raid_name': get_snmp_table('1.3.6.1.4.1.6574.3.1.1.2', args),
-        'raid_state': get_snmp_table('1.3.6.1.4.1.6574.3.1.1.3', args),
-        'raid_free': get_snmp_table('1.3.6.1.4.1.6574.3.1.1.4', args),
-        'raid_size': get_snmp_table('1.3.6.1.4.1.6574.3.1.1.5', args)
+        'raid_name': await get_snmp_table('1.3.6.1.4.1.6574.3.1.1.2', args),
+        'raid_state': await get_snmp_table('1.3.6.1.4.1.6574.3.1.1.3', args),
+        'raid_free': await get_snmp_table('1.3.6.1.4.1.6574.3.1.1.4', args),
+        'raid_size': await get_snmp_table('1.3.6.1.4.1.6574.3.1.1.5', args)
     }
 
     # Check if we received data via SNMP, otherwise exit with state Unknown
@@ -303,7 +321,7 @@ def main():
             len(snmp_replies['raid_state']) == 0 or
             len(snmp_replies['raid_free']) == 0 or
             len(snmp_replies['raid_size']) == 0):
-        exit_plugin("3", "No data returned via SNMP", "NULL")
+        exit_plugin(3, "No data returned via SNMP", "NULL")
 
     # Parse results from get_snmp_table() into list of SynologyRaid objects
     volumes: list = parse_synology_raidmib(snmp_replies)
@@ -330,14 +348,14 @@ def main():
                     returncode = set_state(1, returncode)
 
             # Append to output and perfdata string
-            perfdata += (f'\'{ volume.label }\'={ volume.used_bytes }B;'
-                         f'{ volume.wthres_bytes };{ volume.cthres_bytes };0;{ volume.size } ')
-            output += f'{ volume.name }: { raid_state_dict[str(volume.state)] } ({ volume.used_pct }%) '
+            perfdata += (f'\'{volume.label}\'={volume.used_bytes}B;'
+                         f'{volume.wthres_bytes};{volume.cthres_bytes};0;{volume.size} ')
+            output += f'{volume.name}: {raid_state_dict[str(volume.state)]} ({volume.used_pct}%) '
 
         if match("^Storage Pool *", volume.name):
             # Storage Pool, do not apply disk thresholds and do not append
             # perfdata with "used"-metric
-            output += f'{ volume.name }: { raid_state_dict[str(volume.state)] } '
+            output += f'{volume.name}: {raid_state_dict[str(volume.state)]} '
 
         # Evaluate against volume state
         if volume.state in volumestates['crit']:
@@ -352,4 +370,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
