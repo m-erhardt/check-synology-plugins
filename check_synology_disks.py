@@ -161,17 +161,24 @@ async def get_snmp_table(table_oid, args):
 
 def exit_plugin(returncode: int, output: str, perfdata: str = ""):
     """ Check status and exit accordingly """
+
+    # Only append perfdata if it is set - otherwise the pipe character ends up in the output
+    if perfdata == "":
+        returnstring: str = f'{output}'
+    else:
+        returnstring: str = f'{output} | {perfdata}'
+
     if returncode == 3:
-        print("UNKNOWN - " + str(output))
+        print(f"UNKNOWN - {returnstring}")
         sys.exit(3)
-    if returncode == 2:
-        print("CRITICAL - " + str(output) + " | " + str(perfdata))
+    elif returncode == 2:
+        print(f"CRITICAL - {returnstring}")
         sys.exit(2)
-    if returncode == 1:
-        print("WARNING - " + str(output) + " | " + str(perfdata))
+    elif returncode == 1:
+        print(f"WARNING - {returnstring}")
         sys.exit(1)
     elif returncode == 0:
-        print("OK - " + str(output) + " | " + str(perfdata))
+        print(f"OK - {returnstring}")
         sys.exit(0)
 
 
